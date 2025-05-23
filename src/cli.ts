@@ -282,6 +282,7 @@ const subcommands: Record<string, () => void> = {
 		}
 	},
 	"override-world"() {
+		if (args.type != "world") throw new Error("The mode isn't 'world'");
 		cpSync(resolve("./world"), path.join(mcdir, "minecraftWorlds", worldDir), {
 			recursive: true,
 		});
