@@ -18,14 +18,14 @@ import { Unzip, Zip } from "zip-lib";
 import * as wss from "./wss";
 import { input } from "@inquirer/prompts";
 
-export const mcbuild_version = "1.0.0-beta";
+export const BedrockBuilder_version = "1.0.0-beta";
 
 const argv = parseArg(process.argv);
-export interface MCBuildWSServerOptions {
+export interface BedrockBuilderWSServerOptions {
 	host: string;
 	port: number;
 }
-export interface MCBuildConfig {
+export interface BedrockBuilderConfig {
 	packName?: string;
 	mode?: "dev" | "release";
 	outFile?: string;
@@ -33,28 +33,31 @@ export interface MCBuildConfig {
 	entry?: string;
 	type?: "bp" | "addon" | "world";
 	esbuildOptions?: esbuild.BuildOptions;
-	server?: MCBuildWSServerOptions;
+	server?: BedrockBuilderWSServerOptions;
 	mcdir?: string;
 	beforeBuild?: () => void;
 	afterBuild?: () => void;
 }
 
-const mbConfig: MCBuildConfig = {
+const mbConfig: BedrockBuilderConfig = {
 	packName: "unknown",
 	mode: "dev",
 	lang: "ts",
 	outFile: "main",
 	entry: resolve("./src/index.ts"),
 };
-if (existsSync(resolve("mcbuild.config.js")))
-	Object.assign(mbConfig, require(resolve(argv.c ?? "mcbuild.config.js")));
+if (existsSync(resolve("BedrockBuilder.config.js")))
+	Object.assign(
+		mbConfig,
+		require(resolve(argv.c ?? "BedrockBuilder.config.js"))
+	);
 
 const args = Object.assign(mbConfig, argv);
 const subcommand = args._[2] as string;
 const dirname = __dirname;
 args.release = args.release ?? args.mode == "release";
 
-console.log("MCBuild v" + mcbuild_version, subcommand);
+console.log("BedrockBuilder v" + BedrockBuilder_version, subcommand);
 
 if (args.mode == "dev" && subcommand == "watch") {
 	wss.createServer(args.server?.host, args.server?.port);
@@ -307,7 +310,7 @@ const subcommands: Record<string, () => void> = {
 		console.log(`\x1b[1mRun 'npm i ${v.join(" ")} --force' to update\x1b[0m`);
 	},
 	help() {
-		console.log("mcbuild\n ", Object.keys(subcommands).join("\n  "));
+		console.log("BedrockBuilder\n ", Object.keys(subcommands).join("\n  "));
 	},
 };
 
