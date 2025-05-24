@@ -1,12 +1,22 @@
 #! /usr/bin/env node
 import { execSync } from "child_process";
 import esbuild, { BuildOptions, Format } from "esbuild";
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from "fs";
+import {
+	cpSync,
+	createWriteStream,
+	existsSync,
+	mkdirSync,
+	readdirSync,
+	readFileSync,
+	rmSync,
+	writeFileSync,
+} from "fs";
 import parseArg from "minimist";
 import watch from "node-watch";
-import path, { resolve } from "path";
-import { Zip } from "zip-lib";
+import path, { join, resolve } from "path";
+import { Unzip, Zip } from "zip-lib";
 import * as wss from "./wss";
+import { input } from "@inquirer/prompts";
 
 export const mcbuild_version = "1.0.0-beta";
 
@@ -33,7 +43,7 @@ const mbConfig: MCBuildConfig = {
 	packName: "unknown",
 	mode: "dev",
 	lang: "ts",
-	outFile: "main.js",
+	outFile: "main",
 	entry: resolve("./src/index.ts"),
 };
 if (existsSync(resolve("mcbuild.config.js")))
@@ -42,6 +52,7 @@ if (existsSync(resolve("mcbuild.config.js")))
 const args = Object.assign(mbConfig, argv);
 const subcommand = args._[2] as string;
 const dirname = __dirname;
+args.release = args.release ?? args.mode == "release";
 
 console.log("MCBuild v" + mcbuild_version, subcommand);
 
@@ -199,9 +210,9 @@ const config: BuildOptions = {
 
 async function fetchMCPackageVersion(p: string) {
 	let pkg = JSON.parse(readFileSync(resolve("package.json")).toString());
-	const registry = await (
+	const registry: Record<string, object> = (await (
 		await fetch("https://registry.npmjs.org/" + p)
-	).json();
+	).json()) as Record<string, object>;
 	const versions = Object.keys(registry.versions);
 	let beta_stable = versions.filter((v) => /.*-beta.*-stable/.test(v));
 	let latest = beta_stable[beta_stable.length - 1];
@@ -220,6 +231,7 @@ async function fetchMCPackageVersion(p: string) {
 	);
 	return `${p}@${latest}`;
 }
+
 const subcommands: Record<string, () => void> = {
 	build: async () => {
 		esbuild.build(config as unknown as Format).catch((e) => undefined);
