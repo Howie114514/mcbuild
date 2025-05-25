@@ -18,14 +18,14 @@ import { Unzip, Zip } from "zip-lib";
 import * as wss from "./wss";
 import { input } from "@inquirer/prompts";
 
-export const BedrockBuilder_version = "1.0.0-beta";
+export const mcbuild_version = "1.0.0-beta";
 
 const argv = parseArg(process.argv);
-export interface BedrockBuilderWSServerOptions {
+export interface MCBuildWSServerOptions {
 	host: string;
 	port: number;
 }
-export interface BedrockBuilderConfig {
+export interface MCBuildConfig {
 	packName?: string;
 	mode?: "dev" | "release";
 	outFile?: string;
@@ -33,31 +33,26 @@ export interface BedrockBuilderConfig {
 	entry?: string;
 	type?: "bp" | "addon" | "world";
 	esbuildOptions?: esbuild.BuildOptions;
-	server?: BedrockBuilderWSServerOptions;
+	server?: MCBuildWSServerOptions;
 	mcdir?: string;
 	beforeBuild?: () => void;
 	afterBuild?: () => void;
 }
 
-const mbConfig: BedrockBuilderConfig = {
+const mbConfig: MCBuildConfig = {
 	packName: "unknown",
 	mode: "dev",
 	lang: "ts",
 	outFile: "main",
 	entry: resolve("./src/index.ts"),
 };
-if (existsSync(resolve("BedrockBuilder.config.js")))
-	Object.assign(
-		mbConfig,
-		require(resolve(argv.c ?? "BedrockBuilder.config.js"))
-	);
+if (existsSync(resolve("mcbuild.config.js")))
+	Object.assign(mbConfig, require(resolve(argv.c ?? "mcbuild.config.js")));
 
 const args = Object.assign(mbConfig, argv);
 const subcommand = args._[2] as string;
 const dirname = __dirname;
 args.release = args.release ?? args.mode == "release";
-
-console.log("BedrockBuilder v" + BedrockBuilder_version, subcommand);
 
 if (args.mode == "dev" && subcommand == "watch") {
 	wss.createServer(args.server?.host, args.server?.port);
@@ -310,11 +305,12 @@ const subcommands: Record<string, () => void> = {
 		console.log(`\x1b[1mRun 'npm i ${v.join(" ")} --force' to update\x1b[0m`);
 	},
 	help() {
-		console.log("BedrockBuilder\n ", Object.keys(subcommands).join("\n  "));
+		console.log("mcbuild\n ", Object.keys(subcommands).join("\n  "));
 	},
 };
 
 if (subcommands[subcommand]) {
+	console.log("mcbuild v" + mcbuild_version, subcommand);
 	subcommands[subcommand]();
 } else {
 	console.error("Invalid subcommand. Available commands:");
